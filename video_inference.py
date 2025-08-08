@@ -42,21 +42,10 @@ class VideoFluidSegmentation:
         print(f"Loading model from {model_path}")
         checkpoint = torch.load(model_path, map_location=self.device)
         
-        # Load config to get encoder name
-        import json
-        import os
-        config_path = os.path.join(os.path.dirname(model_path), 'config.json')
-        encoder_name = "resnet34"  # default fallback
-        
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-                encoder_name = config.get('encoder', 'resnet34')
-                print(f"Using encoder: {encoder_name} (from config)")
-        else:
-            print(f"Config file not found, using default encoder: {encoder_name}")
-        
-        # Create model with correct encoder
+        # Create model with the same encoder used during training
+        # Try to get encoder from checkpoint, fallback to efficientnet-b3
+        encoder_name = checkpoint.get('encoder_name', 'efficientnet-b3')
+        print(f"Using encoder: {encoder_name}")
         self.model = create_model(encoder_name=encoder_name)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model = self.model.to(self.device)
@@ -389,6 +378,7 @@ class VideoFluidSegmentation:
             
             # Store results
             results.append({
+
                 'frame': frame_idx,
                 'mask_area': np.sum(mask),
                 'max_confidence': np.max(confidence),

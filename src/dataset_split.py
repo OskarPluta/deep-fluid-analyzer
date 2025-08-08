@@ -20,71 +20,76 @@ class DatasetSplitter:
             (self.output_dir / split / 'frames').mkdir(parents=True, exist_ok=True)
             (self.output_dir / split / 'masks').mkdir(parents=True, exist_ok=True)
         
-        # Get all frame directories
-        frame_dirs = [d for d in self.frames_dir.iterdir() if d.is_dir()]
+        # Get all frame files directly from frames directory (support PNG/JPG/JPEG)
+        frame_files = sorted([
+            f
+            for ext in ("*.png", "*.jpg", "*.jpeg")
+            for f in self.frames_dir.glob(ext)
+        ])
         
-        for frame_dir in frame_dirs:
-            mask_dir = self.masks_dir / frame_dir.name
-            if not mask_dir.exists():
-                print(f"Warning: No corresponding mask directory for {frame_dir.name}")
-                continue
+        print(f"Found {len(frame_files)} frame files")
+        
+        # Shuffle for random split
+        random.shuffle(frame_files)
+        
+        # Calculate split indices
+        total = len(frame_files)
+        train_end = int(total * train_ratio)
+        val_end = int(total * (train_ratio + val_ratio))
+        
+        # Split files
+        splits = {
+            'train': frame_files[:train_end],
+            'val': frame_files[train_end:val_end],
+            'test': frame_files[val_end:]
+        }
+        
+        print(f"Split: {len(splits['train'])} train, {len(splits['val'])} val, {len(splits['test'])} test")
+        
+        # Copy files to respective directories
+        for split_name, files in splits.items():
+            for frame_file in files:
+                # Copy frame
+                dst_frame = self.output_dir / split_name / 'frames' / frame_file.name
+                shutil.copy2(frame_file, dst_frame)
                 
-            # Get all frame files
-            frame_files = list(frame_dir.glob("*.png"))
-            frame_files.sort()
-            
-            # Shuffle for random split
-            random.shuffle(frame_files)
-            
-            # Calculate split indices
-            total = len(frame_files)
-            train_end = int(total * train_ratio)
-            val_end = int(total * (train_ratio + val_ratio))
-            
-            # Split files
-            splits = {
-                'train': frame_files[:train_end],
-                'val': frame_files[train_end:val_end],
-                'test': frame_files[val_end:]
-            }
-            
-            # Copy files to respective directories
-            for split_name, files in splits.items():
-                for frame_file in files:
-                    # Copy frame
-                    dst_frame = self.output_dir / split_name / 'frames' / frame_file.name
-                    shutil.copy2(frame_file, dst_frame)
-                    
-                    # Find and copy corresponding mask
-                    mask_file = self._find_corresponding_mask(frame_file, mask_dir)
-                    if mask_file:
-                        dst_mask = self.output_dir / split_name / 'masks' / mask_file.name
-                        shutil.copy2(mask_file, dst_mask)
-                    else:
-                        print(f"Warning: No corresponding mask found for {frame_file.name}")
+                # Find and copy corresponding mask
+                mask_file = self._find_corresponding_mask(frame_file)
+                if mask_file:
+                    dst_mask = self.output_dir / split_name / 'masks' / mask_file.name
+                    shutil.copy2(mask_file, dst_mask)
+                else:
+                    print(f"Warning: No corresponding mask found for {frame_file.name}")
         
         print(f"Dataset split completed. Output saved to {self.output_dir}")
     
-    def _find_corresponding_mask(self, frame_file: Path, mask_dir: Path) -> Path:
-        """Find corresponding mask file for a frame"""
+    def _find_corresponding_mask(self, frame_file: Path) -> Path:
+        """Find corresponding mask file for a frame (supports PNG/JPG/JPEG)"""
         frame_name = frame_file.stem
+        exts = (".png", ".jpg", ".jpeg")
         
-        # Try direct match first
-        mask_files = list(mask_dir.glob("*.png"))
-        
-        for mask_file in mask_files:
-            mask_name = mask_file.stem
-            # Extract frame number from both files
-            if self._extract_frame_number(frame_name) == self._extract_frame_number(mask_name):
+        # New naming convention: frame_name + "_mask" with any extension
+        for ext in exts:
+            mask_file = self.masks_dir / f"{frame_name}_mask{ext}"
+            if mask_file.exists():
                 return mask_file
+        
+        # Fallback: try to find mask by extracting frame identifier
+        frame_id = self._extract_frame_identifier(frame_name)
+        if frame_id:
+            candidates = [p for pat in ("*.png", "*.jpg", "*.jpeg") for p in self.masks_dir.glob(pat)]
+            for mask_file in candidates:
+                stem = mask_file.stem
+                if stem == f"{frame_name}_mask" or frame_id in stem:
+                    return mask_file
         
         return None
     
-    def _extract_frame_number(self, filename: str) -> str:
-        """Extract frame number from filename"""
-        # Look for patterns like _000055 or _002688
-        match = re.search(r'_(\d+)', filename)
-        return match.group(1) if match else ""
+    def _extract_frame_identifier(self, filename: str) -> str:
+        """Extract frame identifier from filename"""
+        # For new format like '2beb73a8-frame_0013', extract the full identifier
+        # This handles both the UUID part and frame number
+        return filename
 
 # Usage example
 if __name__ == "__main__":

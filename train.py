@@ -37,7 +37,8 @@ class Trainer:
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler._LRScheduler,
         device: torch.device,
-        save_dir: str = "checkpoints"
+        save_dir: str = "checkpoints",
+        encoder_name: str = "resnet34"
     ):
         self.model = model
         self.train_loader = train_loader
@@ -46,6 +47,7 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.device = device
+        self.encoder_name = encoder_name
         self.save_dir = Path(save_dir)
         self.save_dir.mkdir(exist_ok=True)
         
@@ -145,7 +147,8 @@ class Trainer:
             'scheduler_state_dict': self.scheduler.state_dict(),
             'history': self.history,
             'best_dice': self.best_dice,
-            'best_epoch': self.best_epoch
+            'best_epoch': self.best_epoch,
+            'encoder_name': self.encoder_name
         }
         
         # Save regular checkpoint
@@ -342,7 +345,8 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
-        save_dir=save_dir
+        save_dir=save_dir,
+        encoder_name=args.encoder
     )
     
     # Start training
