@@ -1,0 +1,29 @@
+{
+  "frames_processed": 1296,
+  "frames_with_fluid": 1296,
+  "total_fluid_pixels": 24387179.0,
+  "file_size_mb": 1.8797616958618164,
+  "avg_processing_time": 0.07429930494155412,
+  "avg_fps": 13.459076108270832,
+  "detection_rate": 1.0,
+  "avg_fluid_pixels_per_frame": 18817.26774691358,
+  "final_shape": [
+    1296,
+    512,
+    512
+  ],
+  "compression_ratio": 172.36227374633003,
+  "original_fps": 50.0,
+  "original_total_frames": 1296,
+  "original_resolution": [
+    1920,
+    1080
+  ],
+  "start_frame": 0,
+  "end_frame": 1296,
+  "frame_step": 1,
+  "video_path": "video/nowy4.MP4",
+  "threshold": 0.5,
+  "include_confidence": false,
+  "frames_included": false
+}

@@ -140,7 +140,7 @@ def get_training_transforms(image_size: Tuple[int, int] = (512, 512)) -> A.Compo
         A.ShiftScaleRotate(
             shift_limit=0.05,
             scale_limit=0.10,
-            rotate_limit=0,
+            rotate_limit=10,
             border_mode=cv.BORDER_REFLECT,
             p=0.5
         ),
@@ -153,7 +153,7 @@ def get_training_transforms(image_size: Tuple[int, int] = (512, 512)) -> A.Compo
         A.ImageCompression(quality_lower=60, quality_upper=100, p=0.3),
         # Noise/blur
         A.OneOf([
-            A.GaussNoise(var_limit=(10.0, 50.0)),
+            A.GaussNoise(var_limit=(10.0, 70.0)),
             A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.05, 0.3)),
         ], p=0.3),
         A.MotionBlur(blur_limit=3, p=0.2),
