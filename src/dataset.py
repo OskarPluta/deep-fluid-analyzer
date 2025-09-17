@@ -4,7 +4,7 @@ import numpy as np
 import cv2 as cv
 import albumentations as A
 
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple, List
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from albumentations.pytorch import ToTensorV2
@@ -77,16 +77,16 @@ class FluidDataset(Dataset):
 
         return image, mask
     
-def get_training_transforms(image_size: tuple[int, int] = (512, 512)) -> A.Compose:
+def get_training_transforms(image_size: Tuple[int, int] = (512, 512)) -> A.Compose:
     """Training transforms without rotations/flips; zoom/pan via scale/shift, plus photometric and compression noise."""
     return A.Compose([
         # Keep target size fixed
         A.Resize(height=image_size[0], width=image_size[1]),
         # Translate/scale without rotation
-        A.Affine(
-            translate_percent=(-0.1, 0.1),
-            scale=(0.5, 0.8),
-            rotate=0,
+        A.ShiftScaleRotate(
+            shift_limit=0.05,
+            scale_limit=0.10,
+            rotate_limit=10,
             border_mode=cv.BORDER_REFLECT,
             p=0.5
         ),
@@ -96,10 +96,10 @@ def get_training_transforms(image_size: tuple[int, int] = (512, 512)) -> A.Compo
         A.HueSaturationValue(hue_shift_limit=5, sat_shift_limit=10, val_shift_limit=10, p=0.3),
         A.RandomGamma(gamma_limit=(80, 120), p=0.2),
         # Compression artifacts - fixed for newer albumentations
-        A.ImageCompression(compression_type='jpeg', quality_range=(60, 100), p=0.3),
+        A.ImageCompression(quality_lower=60, quality_upper=100, p=0.3),
         # Noise/blur
         A.OneOf([
-            A.GaussNoise(std_range=(0.1, 0.225)),
+            A.GaussNoise(var_limit=(10.0, 70.0)),
             A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.05, 0.3)),
         ], p=0.3),
         A.MotionBlur(blur_limit=3, p=0.2),

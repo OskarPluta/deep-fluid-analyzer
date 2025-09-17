@@ -273,7 +273,7 @@ class Trainer:
 
 def main():
     parser = argparse.ArgumentParser(description='Train U-Net for fluid segmentation')
-    parser.add_argument('--dataset-dir', type=str, default='dataset', help='Dataset directory')
+    parser.add_argument('--dataset-dir', type=str, default='datasets', help='Dataset directory')
     parser.add_argument('--batch-size', type=int, default=8, help='Batch size')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
@@ -328,13 +328,43 @@ def main():
     # Create optimizer
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     
-    # Create scheduler
+    # Create scheduler - choose one of the following:
+    
+    # # 1. ReduceLROnPlateau (current)
     scheduler = ReduceLROnPlateau(
         optimizer, 
         mode='min', 
-        factor=0.5, 
-        patience=10
+        factor=0.2, 
+        patience=10,
     )
+    
+    # 2. CosineAnnealingLR (current alternative)
+    # scheduler = CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+    
+    # 3. StepLR - reduces LR by factor every step_size epochs
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    
+    # 4. MultiStepLR - reduces LR at specific milestones
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.1)
+    
+    # 5. ExponentialLR - exponential decay
+    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
+    
+    # 6. CosineAnnealingWarmRestarts - cosine annealing with warm restarts
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+    
+    # 7. OneCycleLR - one cycle learning rate policy
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=args.lr*10, epochs=args.epochs, steps_per_epoch=len(train_loader))
+    
+    # 8. CyclicLR - triangular cyclical learning rates
+    # scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=args.lr/10, max_lr=args.lr*10, step_size_up=2000)
+    
+    # 9. PolynomialLR - polynomial decay
+    # scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, total_iters=args.epochs, power=0.9)
+    
+    # 10. LinearLR - linear decay
+    # scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=args.epochs)
+
     
     # Create trainer
     trainer = Trainer(
