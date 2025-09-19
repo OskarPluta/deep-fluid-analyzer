@@ -331,12 +331,12 @@ def main():
     # Create scheduler - choose one of the following:
     
     # # 1. ReduceLROnPlateau (current)
-    scheduler = ReduceLROnPlateau(
-        optimizer, 
-        mode='min', 
-        factor=0.2, 
-        patience=10,
-    )
+    # scheduler = ReduceLROnPlateau(
+    #     optimizer, 
+    #     mode='min', 
+    #     factor=0.2, 
+    #     patience=10,
+    # )
     
     # 2. CosineAnnealingLR (current alternative)
     # scheduler = CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
@@ -351,7 +351,7 @@ def main():
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
     
     # 6. CosineAnnealingWarmRestarts - cosine annealing with warm restarts
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
     
     # 7. OneCycleLR - one cycle learning rate policy
     # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=args.lr*10, epochs=args.epochs, steps_per_epoch=len(train_loader))

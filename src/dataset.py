@@ -53,6 +53,11 @@ class FluidDataset(Dataset):
         mask = np.array(mask)
         mask = mask.astype(np.float32) / 255.0
 
+        # Ensure image and mask have the same dimensions
+        if image.shape[:2] != mask.shape[:2]:
+            # Resize mask to match image dimensions
+            mask = cv.resize(mask, (image.shape[1], image.shape[0]), interpolation=cv.INTER_NEAREST)
+
         if self.transform:
             augmented = self.transform(image=image, mask=mask)
             image = augmented['image']
@@ -106,7 +111,7 @@ def get_training_transforms(image_size: Tuple[int, int] = (512, 512)) -> A.Compo
         # Normalize and to tensor
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ToTensorV2()
-    ])
+    ], is_check_shapes=False)
 
 def get_validation_transforms(image_size: tuple[int, int] = (512, 512)) -> A.Compose:
     """Validation transforms: resize, normalize, to tensor."""
@@ -114,7 +119,7 @@ def get_validation_transforms(image_size: tuple[int, int] = (512, 512)) -> A.Com
         A.Resize(height=image_size[0], width=image_size[1]),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ToTensorV2()
-    ])
+    ], is_check_shapes=False)
 
 def create_dataloaders(
     dataset_dir: str,

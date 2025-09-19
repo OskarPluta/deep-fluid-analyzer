@@ -1,0 +1,13 @@
+{
+  "dataset_dir": "datasets",
+  "batch_size": 2,
+  "epochs": 100,
+  "lr": 0.001,
+  "encoder": "efficientnet-b3",
+  "image_size": 512,
+  "num_workers": 4,
+  "save_dir": "checkpoints",
+  "save_frequency": 10,
+  "device": "cuda",
+  "timestamp": "20250917_211552"
+}

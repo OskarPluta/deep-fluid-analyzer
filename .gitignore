@@ -17,3 +17,5 @@ video/
 data/
 datasets/
 saved_videos/
+extracted_data/
+best_model/
