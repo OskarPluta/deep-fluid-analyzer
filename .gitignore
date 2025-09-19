@@ -19,3 +19,15 @@ datasets/
 saved_videos/
 extracted_data/
 best_model/
+
+data/
+datasets/
+saved_videos/
+extracted_data/
+best_model/
+logs/
+runs/
+results/
+output/
+*.log
+*.csv
