@@ -4,7 +4,7 @@ import cv2 as cv
 import albumentations as A
 
 import torch
-from model import SegmentationModel
+from model import FluidSegmentationModel
 
 
 def moving_average(x, window_len):
@@ -117,7 +117,7 @@ def get_fluid_bounds(contours: list,
 
 
 def get_binary_mask(frame: np.ndarray,
-                    model: SegmentationModel,
+                    model: FluidSegmentationModel,
                     device: str,
                     transform) -> np.ndarray:
     """
@@ -222,7 +222,7 @@ def crop_fluid_region(frame: np.ndarray,
 
 
 def get_start_end_frames(cap: cv.VideoCapture,
-                         model: SegmentationModel,
+                         model: FluidSegmentationModel,
                          device: str,
                          transform: A.Compose,
                          display: bool) -> tuple:
@@ -297,7 +297,7 @@ def get_start_end_frames(cap: cv.VideoCapture,
     return end_of_expansion_frame, break_moment_frame
 
 def get_expected_narrowest_point_v1(cap: cv.VideoCapture,
-                            model: SegmentationModel,
+                            model: FluidSegmentationModel,
                             device: str,
                             transform: A.Compose,
                             end_of_expansion_frame: int,

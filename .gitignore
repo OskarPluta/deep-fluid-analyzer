@@ -31,3 +31,4 @@ results/
 output/
 *.log
 *.csv
+out/

@@ -3,32 +3,41 @@ import cv2 as cv
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from pathlib import Path
 from collections import Counter, deque
 
 sys.path.append(str(Path(__file__).parent / 'src'))
-from datasets import get_validation_transforms
-from model import SegmentationModel
+from dataset import get_validation_transforms
+from model import create_model, FluidSegmentationModel
 
 from utils import *
 
 
 def main():
-    video_path = 'videos/C0209.MP4'
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = SegmentationModel(
+    model = FluidSegmentationModel(
             encoder_name='efficientnet-b3',
             encoder_weights=None,
             in_channels=3,
             classes=1
-        )
-    model_state_dict = torch.load('models/best_model.pth', map_location=device)["model_state_dict"]
+        )   
+    model_state_dict = torch.load('best_model/best_model.pth', map_location=device)["model_state_dict"]
     model.load_state_dict(model_state_dict)
     model.to(device)
     model.eval()
+
+    base_dir = '/media/oskar/1C81-E822/'
+
+    videos = os.listdir(base_dir)
+
+    videos = [v for v in videos if v.endswith('.MP4')]
+    # print(videos)
+    # videos = ['/media/oskar/1C81-E822/0,7% M&GK 0,175 3.MP4']
     
-    for i in range(3, 5):
-        video_path = f'to_measure/test_{i+1}.MP4'
+    for video in videos:
+        video_path = os.path.join(base_dir, video)
+        print(video_path)
         cap = cv.VideoCapture(video_path)
 
         orig_size = (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
@@ -60,7 +69,7 @@ def main():
         new_top, new_bottom = crop_fluid_region(frame, original_bounds, w_ratio, h_ratio, 512)
         # end of getting cropping bounds
 
-        # new_top, new_bottom = 0, orig_size[1]  # disable cropping for now
+        new_top, new_bottom = 0, orig_size[1]  # disable cropping for now
 
         x_expected_value = get_expected_narrowest_point_v1(cap,
                                                         model,
@@ -129,7 +138,7 @@ def main():
             plt.ylabel('Diameter')
             plt.title('Diameter Over Time')
             plt.grid(True, alpha=0.3)
-            plt.show()
+            plt.savefig(f'out/{video}.png')
 
 
     
